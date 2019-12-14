@@ -6,37 +6,90 @@ const readFile = path => {
   return buffer.toString().trim()
 }
 
-const intCode = memory => {
+const ADDITION = 1
+const MULTIPLICATION = 2
+const INPUT = 3
+const OUTPUT = 4
+const JUMP_IF_TRUE = 5
+const JUMP_IF_FALSE = 6
+const LESS_THAN = 7
+const EQUALS = 8
+const TERMINATION = 99
+
+const intCode = (memory, debug = false) => {
+  let pointer = 0
+  let advancePointer = true
+  const val = (val, mode) => mode ? val : memory[val]
   const instructions = {
-    1: {
+    [ADDITION]: {
       instruction: ([aMode, bMode], a, b, address) => {
-        memory[address] = (aMode ? a : memory[a]) + (bMode ? b : memory[b])
+        memory[address] = (val(a, aMode)) + (bMode ? b : memory[b])
       },
       parameterCount: 3
     },
-    2: {
+    [MULTIPLICATION]: {
       instruction: ([aMode, bMode], a, b, address) => {
         memory[address] = (aMode ? a: memory[a]) * (bMode ? b : memory[b])
       },
       parameterCount: 3
     },
-    3: {
+    [INPUT]: {
       instruction: ([aMode], a) => {
         const value = readline.question('Enter a value: ')
           memory[a] = parseInt(value)
       },
       parameterCount: 1
     },
-    4: {
+    [OUTPUT]: {
       instruction: ([aMode], a) => {
-        console.log(memory[a])
+        console.log(val(a, aMode))
+        if (debug) {
+          console.log(`Pointer: ${pointer}`)
+        }
       },
       parameterCount: 1
+    },
+    [JUMP_IF_TRUE]: {
+      instruction: ([aMode, bMode], a, b) => {
+        const aVal = val(a, aMode)
+        const bVal = val(b, bMode)
+        if (aVal !== 0) {
+          pointer = bVal
+          advancePointer = false
+        }
+      },
+      parameterCount: 2
+    },
+    [JUMP_IF_FALSE]: {
+      instruction: ([aMode, bMode], a, b) => {
+        const aVal = val(a, aMode)
+        const bVal = val(b, bMode)
+        if (aVal === 0) {
+          pointer = bVal
+          advancePointer = false
+        }
+      },
+      parameterCount: 2
+    },
+    [LESS_THAN]: {
+      instruction: ([aMode, bMode], a, b, address) => {
+        const aVal = val(a, aMode)
+        const bVal = val(b, bMode)
+        memory[address] = aVal < bVal ? 1 : 0
+      },
+      parameterCount: 3
+    },
+    [EQUALS]: {
+      instruction: ([aMode, bMode], a, b, address) => {
+        const aVal = val(a, aMode)
+        const bVal = val(b, bMode)
+        memory[address] = aVal === bVal ? 1 : 0
+      },
+      parameterCount: 3
     }
   }
 
-  let pointer = 0
-  while (memory[pointer] !== 99) {
+  while (memory[pointer] !== TERMINATION) {
     const instructionValue = memory[pointer].toString()
     const instructionCode = parseInt(instructionValue.slice(-2))
     const { instruction, parameterCount } = instructions[instructionCode]
@@ -52,7 +105,13 @@ const intCode = memory => {
       parameters.push(memory[pointer + i])
     }
     instruction(parameterModes, ...parameters)
-    pointer += parameterCount + 1
+    if (advancePointer) {
+      pointer += parameterCount + 1
+    }
+    advancePointer = true
+  }
+  if (debug) {
+    console.log(memory)
   }
   return memory[0]
 }
