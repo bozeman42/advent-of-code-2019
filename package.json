@@ -8,5 +8,8 @@
     "start": "node index.js"
   },
   "author": "Aaron Kvarnlov-Leverty",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "readline-sync": "^1.4.10"
+  }
 }

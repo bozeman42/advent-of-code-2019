@@ -1,4 +1,5 @@
 const fs = require('fs')
+const readline = require('readline-sync')
 
 const readFile = path => {
   const buffer = fs.readFileSync(path)
@@ -8,22 +9,41 @@ const readFile = path => {
 const intCode = memory => {
   const instructions = {
     1: {
-      instruction: (a, b, address) => {
-        memory[address] = memory[a] + memory[b]
+      instruction: ([aMode, bMode], a, b, address) => {
+        memory[address] = (aMode ? a : memory[a]) + (bMode ? b : memory[b])
       },
       parameterCount: 3
     },
     2: {
-      instruction: (a, b, address) => {
-        memory[address] = memory[a] * memory[b]
+      instruction: ([aMode, bMode], a, b, address) => {
+        memory[address] = (aMode ? a: memory[a]) * (bMode ? b : memory[b])
       },
       parameterCount: 3
+    },
+    3: {
+      instruction: ([aMode], a) => {
+        const value = readline.question('Enter a value: ')
+          memory[a] = parseInt(value)
+      },
+      parameterCount: 1
+    },
+    4: {
+      instruction: ([aMode], a) => {
+        console.log(memory[a])
+      },
+      parameterCount: 1
     }
   }
 
   let pointer = 0
   while (memory[pointer] !== 99) {
-    const { instruction, parameterCount } = instructions[memory[pointer]]
+    const instructionValue = memory[pointer].toString()
+    const instructionCode = parseInt(instructionValue.slice(-2))
+    const { instruction, parameterCount } = instructions[instructionCode]
+    const parameterModes = instructionValue.slice(0, -2).split('').reverse().map(x => parseInt(x))
+    while (parameterModes.length < parameterCount) {
+      parameterModes.push(0)
+    }
     if (!instruction) {
       throw new Error('invalid instruction')
     }
@@ -31,7 +51,7 @@ const intCode = memory => {
     for (let i = 1; i <= parameterCount; i++) {
       parameters.push(memory[pointer + i])
     }
-    instruction(...parameters)
+    instruction(parameterModes, ...parameters)
     pointer += parameterCount + 1
   }
   return memory[0]
