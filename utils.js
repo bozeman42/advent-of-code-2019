@@ -97,9 +97,6 @@ const intCode = (memory, debug = false) => {
     while (parameterModes.length < parameterCount) {
       parameterModes.push(0)
     }
-    if (!instruction) {
-      throw new Error('invalid instruction')
-    }
     const parameters = []
     for (let i = 1; i <= parameterCount; i++) {
       parameters.push(memory[pointer + i])
