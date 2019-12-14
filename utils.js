@@ -8,25 +8,31 @@ const readFile = path => {
 const intCode = memory => {
   const instructions = {
     1: {
-      instruction: (a, b) => a + b,
-      size: 4
+      instruction: (a, b, address) => {
+        memory[address] = memory[a] + memory[b]
+      },
+      parameterCount: 3
     },
     2: {
-      instruction: (a, b) => a * b,
-      size: 4
+      instruction: (a, b, address) => {
+        memory[address] = memory[a] * memory[b]
+      },
+      parameterCount: 3
     }
   }
 
   let pointer = 0
   while (memory[pointer] !== 99) {
-    const { instruction, size } = instructions[memory[pointer]]
+    const { instruction, parameterCount } = instructions[memory[pointer]]
     if (!instruction) {
       throw new Error('invalid instruction')
     }
-    const parameter1 = memory[memory[pointer + 1]]
-    const parameter2 = memory[memory[pointer + 2]]
-    memory[memory[pointer + 3]] = instruction(parameter1, parameter2)
-    pointer += size
+    const parameters = []
+    for (let i = 1; i <= parameterCount; i++) {
+      parameters.push(memory[pointer + i])
+    }
+    instruction(...parameters)
+    pointer += parameterCount + 1
   }
   return memory[0]
 }
