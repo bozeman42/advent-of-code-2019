@@ -32,9 +32,11 @@ const intCode = memory => {
 }
 
 const setNounVerb = (noun, verb, data) => {
-  data[1] = noun
-  data[2] = verb
-  return data
+  return data.map((value, index) => {
+    if (index === 1) return noun
+    if (index === 2) return verb
+    return value
+  })
 }
 
 module.exports = {
