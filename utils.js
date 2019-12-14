@@ -16,7 +16,7 @@ const LESS_THAN = 7
 const EQUALS = 8
 const TERMINATION = 99
 
-const intCode = (memory, debug = false) => {
+const intCode = (memory, inputs = [], debug = false) => {
   let pointer = 0
   let advancePointer = true
   const val = (val, mode) => mode ? val : memory[val]
@@ -35,8 +35,13 @@ const intCode = (memory, debug = false) => {
     },
     [INPUT]: {
       instruction: ([aMode], a) => {
-        const value = readline.question('Enter a value: ')
-          memory[a] = parseInt(value)
+        let value
+        if (inputs.length === 0) {
+          value = readline.question('Enter a value: ')
+        } else {
+          value = inputs.shift()
+        }
+        memory[a] = parseInt(value)
       },
       parameterCount: 1
     },
