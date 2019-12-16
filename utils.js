@@ -16,6 +16,13 @@ const LESS_THAN = 7
 const EQUALS = 8
 const TERMINATION = 99
 
+class IntCode {
+  constructor(memory) {
+    this.memory = memory
+    this.outputQueue = []
+  }
+}
+
 const intCode = (memory, inputs = [], debug = false) => {
   let pointer = 0
   let advancePointer = true
